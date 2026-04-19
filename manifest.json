@@ -2,7 +2,7 @@
   "name": "Mi Huerto Inteligente",
   "short_name": "Mi Huerto",
   "description": "Gestión inteligente de tu huerto con clima en tiempo real",
-  "start_url": "/",
+  "start_url": "/mi-huerto/",
   "display": "standalone",
   "background_color": "#F4F7F4",
   "theme_color": "#1B4332",
