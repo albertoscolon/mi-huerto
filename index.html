@@ -242,7 +242,7 @@ async function marcarAccion(indice, accion) {
     renderListado();
 
   } catch(err) {
-    showToast('Error al guardar. Inténtalo de nuevo.');
+    showToast('Error: ' + (err ? (err.message || JSON.stringify(err)) : 'desconocido').substring(0, 100));
     btn.disabled  = false;
     btn.innerHTML = accion === 'riego'
       ? '<span class="btn-icon">💧</span><span class="btn-lbl">Marcar regado</span>'
