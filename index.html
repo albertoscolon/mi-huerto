@@ -73,14 +73,14 @@
 <body>
 <header>
   <div><h1>Mi Huerto</h1><span id="header-date"></span></div>
-  <button class="btn-refresh" onclick="cargarDatos()">Actualizar</button>
+  <button class="btn-refresh" onclick="forzarActualizacion()">Actualizar</button>
 </header>
 <div class="container"><div id="content"><div class="loading"><div class="spinner"></div><div>Cargando tu huerto...</div></div></div></div>
 <div class="overlay" id="overlay" onclick="cerrarDetalle(event)">
   <div class="detail-sheet"><div class="detail-handle"></div><div id="detail-content"></div></div>
 </div>
 <script>
-const API_URL   = 'https://script.google.com/macros/s/AKfycbzdd6Ub7kOyw6oJq2GLkuHUNGcn0Pc5_hLZP4_4fLNbfu-cKCMuSeDFlehh1BG-ljMl/exec';
+const API_URL   = 'https://script.google.com/macros/s/AKfycbw67Fssw4HnC1sEW4Oz69Qq4wXnh5G0-WXa0sWs1jSHFxoWPayCMWPwn1Sz-TPd2peO/exec';
 const FORM_BASE = 'https://docs.google.com/forms/d/e/1FAIpQLSeVQsvUV_AZ6rJ4JcC3XbdBwRCAYFsdgdkHNj6fJpqcXJ9C3g/viewform?usp=pp_url';
 const ENTRY_CULTIVO = 'entry.1850594090';
 const ENTRY_ACCION  = 'entry.1825585105';
@@ -150,10 +150,10 @@ function verDetalle(i) {
       Al pulsar un botón se abrirá un formulario con el cultivo y la acción ya seleccionados. Solo tienes que pulsar <strong>Enviar</strong> y cerrar.
     </div>
     <div class="action-btns">
-      <a class="btn-action btn-riego" href="${formUrl(c.nombre || c.tipo, 'Riego')}" target="_blank">
+      <a class="btn-action btn-riego" href="${formUrl(c.nombre || c.tipo, 'Riego')}" target="_top">
         <span class="btn-icon">💧</span><span class="btn-lbl">Registrar riego</span>
       </a>
-      <a class="btn-action btn-fert" href="${formUrl(c.nombre || c.tipo, 'Fertilización')}" target="_blank">
+      <a class="btn-action btn-fert" href="${formUrl(c.nombre || c.tipo, 'Fertilización')}" target="_top">
         <span class="btn-icon">🌱</span><span class="btn-lbl">Registrar fertilización</span>
       </a>
     </div>
@@ -184,6 +184,16 @@ function cerrarDetalle(e) {
   if (e && e.target !== document.getElementById('overlay')) return;
   document.getElementById('overlay').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+async function forzarActualizacion() {
+  const btn = document.querySelector('.btn-refresh');
+  if (btn) { btn.textContent = '...'; btn.disabled = true; }
+  try {
+    await fetch(API_URL + '?accion=actualizar');
+  } catch(e) {}
+  await cargarDatos();
+  if (btn) { btn.textContent = 'Actualizar'; btn.disabled = false; }
 }
 
 async function cargarDatos() {
