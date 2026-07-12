@@ -59,8 +59,11 @@
   .quick-btn:disabled { opacity: 0.6; }
   .quick-riego { background: #E3F2FD; color: #1565C0; }
   .quick-fert  { background: #F3E5F5; color: #6A1B9A; }
-  .btn-regar-todo { width: 100%; padding: 13px; border: none; border-radius: 12px; background: #1565C0; color: white; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; margin-bottom: 4px; }
+  .batch-row { display: flex; gap: 8px; margin-bottom: 4px; }
+  .btn-regar-todo { flex: 1; padding: 13px 6px; border: none; border-radius: 12px; background: #1565C0; color: white; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
   .btn-regar-todo:disabled { opacity: 0.6; }
+  .btn-abonar-todo { flex: 1; padding: 13px 6px; border: none; border-radius: 12px; background: #2E7D32; color: white; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-abonar-todo:disabled { opacity: 0.6; }
   .cache-nota { background: #FFF8E1; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #856404; margin-bottom: 12px; text-align: center; }
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: flex-end; }
   .overlay.open { display: flex; }
@@ -425,7 +428,10 @@ function render(desdeCache) {
   document.getElementById('content').innerHTML = `
     ${desdeCache ? '<div class="cache-nota">📶 Sin conexión — mostrando los últimos datos guardados</div>' : ''}
     ${climaHTML}${pronoHTML}${resumen}
-    <button class="btn-regar-todo" onclick="regarTodo(event)">💧 He regado todo el huerto</button>
+    <div class="batch-row">
+      <button class="btn-regar-todo" onclick="registrarTodo('riego',event)">💧 He regado todo</button>
+      <button class="btn-abonar-todo" onclick="registrarTodo('abono',event)">🌱 He abonado todo</button>
+    </div>
     <div class="section-title"><span>Mis cultivos (${CULTIVOS.length})</span>
       <button class="btn-mini" onclick="abrirNuevo()">+ Añadir</button></div>
     ${cards || '<div style="text-align:center;padding:30px;color:#888">No hay cultivos. Añade el primero con “+ Añadir”.</div>'}
@@ -452,20 +458,22 @@ async function registrar(cid, accion, ev) {
   toastDeshacer((accion === 'riego' ? '💧 ' : '🌱 ') + c.nombre + ' — registrado', data.id);
 }
 
-async function regarTodo(ev) {
+async function registrarTodo(accion, ev) {
   if (!CULTIVOS.length) return;
-  if (!confirm('¿Registrar RIEGO de los ' + CULTIVOS.length + ' cultivos, con fecha de hoy?')) return;
+  const nom = accion === 'riego' ? 'RIEGO' : 'ABONO';
+  if (!confirm('¿Registrar ' + nom + ' de los ' + CULTIVOS.length + ' cultivos, con fecha de hoy?')) return;
   lastMutation = Date.now();
   const btn = ev ? ev.currentTarget : null;
+  const orig = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Guardando…'; }
   const hoyIso = isoLocal(hoyLocal());
-  const filas = CULTIVOS.map(c => ({ cultivo_id: c.id, accion: 'riego', fecha: hoyIso }));
+  const filas = CULTIVOS.map(c => ({ cultivo_id: c.id, accion: accion, fecha: hoyIso }));
   const { data, error } = await sb.from('huerto_registros').insert(filas).select('id,cultivo_id,accion,fecha');
-  if (btn) { btn.disabled = false; btn.textContent = '💧 He regado todo el huerto'; }
+  if (btn) { btn.disabled = false; btn.textContent = orig; }
   if (error) { toast('⚠️ No se pudo guardar', true); return; }
   (data || []).forEach(r => REGISTROS.unshift(r));
   render(false);
-  toast('💧 Riego registrado en ' + CULTIVOS.length + ' cultivos');
+  toast((accion === 'riego' ? '💧 Riego' : '🌱 Abono') + ' registrado en ' + CULTIVOS.length + ' cultivos');
 }
 
 async function deshacer(regId) {
