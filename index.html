@@ -13,17 +13,15 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F4F7F4; color: #1a1a1a; min-height: 100vh; padding-bottom: 40px; }
-  header { background: #1B4332; color: white; padding: 16px 20px 14px; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; }
+  header { background: #1B4332; color: white; padding: 16px 20px 14px; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   header h1 { font-size: 20px; font-weight: 600; }
   header span { font-size: 13px; opacity: 0.7; }
-  .btn-refresh { background: rgba(255,255,255,0.15); border: none; color: white; padding: 7px 13px; border-radius: 20px; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .hbtn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 7px 13px; border-radius: 20px; font-size: 13px; cursor: pointer; font-family: inherit; }
   .container { max-width: 600px; margin: 0 auto; padding: 16px; }
   .clima-card { background: #1B4332; color: white; border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .clima-item { text-align: center; }
   .clima-val { font-size: 22px; font-weight: 600; }
   .clima-lbl { font-size: 11px; opacity: 0.7; margin-top: 2px; }
-  .clima-footer { grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 10px; font-size: 12px; opacity: 0.6; text-align: center; }
-  /* Pronóstico */
   .prono-card { background: white; border: 1px solid #E8EDE8; border-radius: 16px; padding: 12px 10px 10px; margin-bottom: 12px; }
   .prono-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #999; text-align: center; margin-bottom: 8px; }
   .prono-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
@@ -33,250 +31,562 @@
   .prono-ico { font-size: 20px; margin: 3px 0; }
   .prono-tmp { font-size: 11px; color: #333; font-weight: 500; }
   .prono-mm  { font-size: 10px; color: #1565C0; font-weight: 600; margin-top: 1px; min-height: 12px; }
-  .prono-aviso { margin-top: 8px; font-size: 12px; border-radius: 10px; padding: 8px 12px; line-height: 1.5; }
-  .aviso-lluvia { background: #E8F1FB; color: #1565C0; }
-  .aviso-calor  { background: #FFF3E0; color: #E65100; }
-  .section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #666; margin-bottom: 10px; }
-  .plant-card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 10px; cursor: pointer; border: 1px solid #E8EDE8; transition: transform 0.1s; }
-  .plant-card:active { transform: scale(0.98); }
+  .aviso { margin-bottom: 12px; font-size: 13px; border-radius: 10px; padding: 12px 14px; line-height: 1.5; font-weight: 500; }
+  .aviso-rojo   { background: #FFEBEE; color: #C62828; }
+  .aviso-ambar  { background: #FFF8E1; color: #F57F17; }
+  .aviso-verde  { background: #E8F5E9; color: #2E7D32; }
+  .aviso-azul   { background: #E8F1FB; color: #1565C0; }
+  .section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #666; margin: 14px 0 10px; display: flex; justify-content: space-between; align-items: center; }
+  .btn-mini { background: white; border: 1px solid #E8EDE8; border-radius: 16px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: #1B4332; cursor: pointer; font-family: inherit; }
+  .plant-card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 10px; border: 1px solid #E8EDE8; }
   .plant-card.urgente { border-left: 4px solid #E53935; }
   .plant-card.pronto  { border-left: 4px solid #F9A825; }
   .plant-card.ok      { border-left: 4px solid #43A047; }
-  .plant-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .plant-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; cursor: pointer; }
   .plant-name { font-size: 16px; font-weight: 600; }
   .plant-tipo { font-size: 12px; color: #888; margin-top: 1px; }
-  .badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+  .badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
   .badge-urgente { background: #FFEBEE; color: #C62828; }
   .badge-pronto  { background: #FFF8E1; color: #F57F17; }
   .badge-ok      { background: #E8F5E9; color: #2E7D32; }
   .badge-neutral { background: #F5F5F5; color: #666; }
-  .plant-rows { display: flex; flex-direction: column; gap: 6px; }
-  .plant-row { display: flex; justify-content: space-between; font-size: 13px; }
-  .plant-row-lbl { color: #888; }
-  .plant-row-val { font-weight: 500; color: #333; text-align: right; max-width: 65%; }
+  .plant-rows { display: flex; flex-direction: column; gap: 6px; cursor: pointer; }
+  .plant-row { display: flex; justify-content: space-between; font-size: 13px; gap: 10px; }
+  .plant-row-lbl { color: #888; flex-shrink: 0; }
+  .plant-row-val { font-weight: 500; color: #333; text-align: right; }
   .quick-btns { display: flex; gap: 8px; margin-top: 12px; }
-  .quick-btn { flex: 1; text-align: center; padding: 8px 4px; border-radius: 10px; font-size: 12px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; font-family: inherit; }
+  .quick-btn { flex: 1; text-align: center; padding: 10px 4px; border-radius: 10px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; }
   .quick-btn:disabled { opacity: 0.6; }
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1B4332; color: white; padding: 12px 20px; border-radius: 24px; font-size: 14px; font-weight: 600; z-index: 300; box-shadow: 0 4px 16px rgba(0,0,0,0.25); max-width: 90%; text-align: center; }
-  .toast.err { background: #C62828; }
   .quick-riego { background: #E3F2FD; color: #1565C0; }
   .quick-fert  { background: #F3E5F5; color: #6A1B9A; }
+  .btn-regar-todo { width: 100%; padding: 13px; border: none; border-radius: 12px; background: #1565C0; color: white; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; margin-bottom: 4px; }
+  .btn-regar-todo:disabled { opacity: 0.6; }
   .cache-nota { background: #FFF8E1; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #856404; margin-bottom: 12px; text-align: center; }
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: flex-end; }
   .overlay.open { display: flex; }
-  .detail-sheet { background: white; width: 100%; max-height: 90vh; border-radius: 20px 20px 0 0; padding: 20px; overflow-y: auto; animation: slideUp 0.25s ease; }
+  .sheet { background: white; width: 100%; max-height: 90vh; border-radius: 20px 20px 0 0; padding: 20px; overflow-y: auto; animation: slideUp .25s ease; }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .detail-handle { width: 40px; height: 4px; background: #DDD; border-radius: 2px; margin: 0 auto 20px; }
-  .detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
-  .detail-name { font-size: 22px; font-weight: 700; }
-  .detail-sub { font-size: 13px; color: #888; margin-top: 3px; }
-  .btn-close { background: #F5F5F5; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .detail-section { margin-bottom: 20px; }
-  .detail-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #999; margin-bottom: 10px; }
-  .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F0F0F0; font-size: 14px; }
-  .detail-row:last-child { border-bottom: none; }
-  .detail-row-lbl { color: #888; }
-  .detail-row-val { font-weight: 500; text-align: right; max-width: 65%; line-height: 1.4; }
-  .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-  .btn-action { padding: 14px 10px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; }
-  .btn-action:active { opacity: 0.8; transform: scale(0.96); }
-  .btn-riego { background: #E3F2FD; color: #1565C0; }
-  .btn-fert  { background: #F3E5F5; color: #6A1B9A; }
-  .btn-action .btn-icon { font-size: 22px; }
-  .btn-action .btn-lbl  { font-size: 12px; }
-  .form-nota { background: #FFF8E1; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #856404; margin-bottom: 16px; line-height: 1.6; }
+  .handle { width: 40px; height: 4px; background: #DDD; border-radius: 2px; margin: 0 auto 20px; }
+  .d-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+  .d-name { font-size: 22px; font-weight: 700; }
+  .d-sub { font-size: 13px; color: #888; margin-top: 3px; }
+  .btn-close { background: #F5F5F5; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 18px; cursor: pointer; }
+  .d-section { margin-bottom: 18px; }
+  .d-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #999; margin-bottom: 8px; }
+  .d-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #F0F0F0; font-size: 14px; gap: 10px; }
+  .d-row:last-child { border-bottom: none; }
+  .d-lbl { color: #888; flex-shrink: 0; }
+  .d-val { font-weight: 500; text-align: right; line-height: 1.4; }
+  .hist-item { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #F5F5F5; font-size: 13px; }
+  .calib-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .calib-btn { padding: 11px 8px; border: 1px solid #E8EDE8; border-radius: 10px; background: #FAFAFA; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; color: #333; line-height: 1.4; }
+  .btn-danger-soft { width: 100%; padding: 11px; border: none; border-radius: 10px; background: #FFF3F3; color: #C62828; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 6px; }
+  .input-group { margin-bottom: 12px; }
+  .input-lbl { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; }
+  .input, select.input { width: 100%; padding: 11px 12px; border: 1px solid #DDD; border-radius: 10px; font-size: 15px; font-family: inherit; background: white; }
+  .btn-primary { width: 100%; padding: 13px; border: none; border-radius: 12px; background: #1B4332; color: white; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-primary:disabled { opacity: 0.6; }
+  .login-wrap { max-width: 380px; margin: 60px auto; padding: 0 20px; }
+  .login-card { background: white; border-radius: 16px; padding: 24px; border: 1px solid #E8EDE8; }
+  .login-title { font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 4px; }
+  .login-sub { font-size: 13px; color: #888; text-align: center; margin-bottom: 20px; }
+  .login-err { background: #FFEBEE; color: #C62828; border-radius: 8px; padding: 9px 12px; font-size: 13px; margin-bottom: 12px; display: none; }
   .loading { text-align: center; padding: 60px 20px; color: #888; }
-  .spinner { width: 36px; height: 36px; border: 3px solid #E0E0E0; border-top-color: #1B4332; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  .spinner { width: 36px; height: 36px; border: 3px solid #E0E0E0; border-top-color: #1B4332; border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 16px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .error-box { background: #FFF3F3; border: 1px solid #FFCDD2; border-radius: 12px; padding: 20px; text-align: center; color: #C62828; font-size: 14px; line-height: 1.6; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1B4332; color: white; padding: 12px 18px; border-radius: 24px; font-size: 14px; font-weight: 600; z-index: 300; box-shadow: 0 4px 16px rgba(0,0,0,.25); max-width: 92%; display: flex; align-items: center; gap: 12px; }
+  .toast.err { background: #C62828; }
+  .toast button { background: rgba(255,255,255,.2); border: none; color: white; padding: 5px 12px; border-radius: 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .last-update { text-align: center; font-size: 12px; color: #AAA; margin-top: 16px; }
 </style>
 </head>
 <body>
 <header>
   <div><h1>Mi Huerto</h1><span id="header-date"></span></div>
-  <button class="btn-refresh" onclick="forzarActualizacion()">Actualizar</button>
+  <div style="display:flex;gap:6px">
+    <button class="hbtn" onclick="cargarTodo(true)">Actualizar</button>
+    <button class="hbtn" onclick="salir()" title="Cerrar sesión">Salir</button>
+  </div>
 </header>
-<div class="container"><div id="content"><div class="loading"><div class="spinner"></div><div>Cargando tu huerto...</div></div></div></div>
-<div class="overlay" id="overlay" onclick="cerrarDetalle(event)">
-  <div class="detail-sheet"><div class="detail-handle"></div><div id="detail-content"></div></div>
+<div class="container"><div id="content"><div class="loading"><div class="spinner"></div><div>Cargando tu huerto…</div></div></div></div>
+
+<div class="overlay" id="ov-detalle" onclick="if(event.target===this)cerrar('ov-detalle')">
+  <div class="sheet"><div class="handle"></div><div id="detalle-content"></div></div>
 </div>
+<div class="overlay" id="ov-nuevo" onclick="if(event.target===this)cerrar('ov-nuevo')">
+  <div class="sheet"><div class="handle"></div><div id="nuevo-content"></div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-const API_URL   = 'https://script.google.com/macros/s/AKfycbw67Fssw4HnC1sEW4Oz69Qq4wXnh5G0-WXa0sWs1jSHFxoWPayCMWPwn1Sz-TPd2peO/exec';
+// ═══════════════ CONFIGURACIÓN ═══════════════
+// Copia estos dos valores del archivo .env de tu repo mi-recetario
+// (VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY), o de
+// Supabase → ⚙ Project Settings → API
+const SUPABASE_URL      = 'https://glbbdddrjmvailcgfotr.supabase.co/rest/v1/';
+const SUPABASE_ANON_KEY = 'sb_publishable_A4grJDyfhZit5AWO4jfluQ_azWmKw_h';
 
 // Ubicación del huerto: Cañadas del Parque, Dílar (Granada)
 const LAT = 37.069, LON = -3.593;
+// ═════════════════════════════════════════════
 
-let datosGlobales  = null;
-let pronosticoHTML = '';
-let lastLoad       = 0;
+let sb = null;
+let TIPOS = {}, CULTIVOS = [], REGISTROS = [], CLIMA = null;
+let lastLoad = 0, lastMutation = 0;
 
-document.getElementById('header-date').textContent = new Date().toLocaleDateString('es-ES', {weekday:'long',day:'numeric',month:'long'});
+document.getElementById('header-date').textContent =
+  new Date().toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
 
-function getBadgeClass(s) {
-  if (!s) return 'badge-neutral';
-  s = s.toString().toUpperCase();
-  if (s.includes('URGENTE')) return 'badge-urgente';
-  if (s.includes('PRONTO'))  return 'badge-pronto';
-  if (s.includes('OK'))      return 'badge-ok';
-  return 'badge-neutral';
+// ── utilidades de fechas (todas a medianoche local) ──
+function hoyLocal() { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+function dLocal(iso) { if (!iso) return null; const p = iso.slice(0,10).split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+function isoLocal(d) { const m = d.getMonth()+1, dd = d.getDate(); return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(dd<10?'0':'')+dd; }
+function diasEntre(a, b) { return Math.round((b - a) / 86400000); }
+function addDias(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()+n); }
+function fmt(d) { if (!d) return '—'; const m = d.getMonth()+1, dd = d.getDate(); return (dd<10?'0':'')+dd+'/'+(m<10?'0':'')+m; }
+function esc(s) { return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+function descClima(code) {
+  code = Number(code);
+  if (code === 0) return 'Despejado';
+  if (code <= 2)  return 'Poco nuboso';
+  if (code === 3) return 'Nublado';
+  if (code <= 48) return 'Niebla';
+  if (code <= 57) return 'Llovizna';
+  if (code <= 67) return 'Lluvia';
+  if (code <= 77) return 'Nieve';
+  if (code <= 82) return 'Chubascos';
+  return 'Tormenta';
 }
 
-function getCardClass(s) {
-  if (!s) return '';
-  s = s.toString().toUpperCase();
-  if (s.includes('URGENTE')) return 'urgente';
-  if (s.includes('PRONTO'))  return 'pronto';
-  if (s.includes('OK'))      return 'ok';
-  return '';
+// ── arranque ──
+function init() {
+  if (SUPABASE_URL.indexOf('PEGA_AQUI') !== -1) {
+    document.getElementById('content').innerHTML =
+      '<div class="error-box">Falta configurar la conexión.<br>Edita index.html y pega tu SUPABASE_URL y ANON_KEY (líneas de CONFIGURACIÓN, al principio del script).</div>';
+    return;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) cargarTodo(); else mostrarLogin();
+  });
 }
 
-function renderClima(c) {
-  const hora = c.actualizado ? new Date(c.actualizado).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : '—';
-  return `<div class="clima-card">
-    <div class="clima-item"><div class="clima-val">${c.temperatura}°C</div><div class="clima-lbl">Temperatura</div></div>
-    <div class="clima-item"><div class="clima-val">${c.humedad}%</div><div class="clima-lbl">Humedad</div></div>
-    <div class="clima-item"><div class="clima-val">${c.lluvia3d}mm</div><div class="clima-lbl">Lluvia 3d</div></div>
-    <div class="clima-item"><div class="clima-val" style="font-size:14px;padding-top:4px">${c.descripcion}</div><div class="clima-lbl">Estado</div></div>
-    <div class="clima-footer">Actualizado: ${hora}</div>
-  </div>`;
+// ── login ──
+function mostrarLogin() {
+  document.getElementById('content').innerHTML = `
+  <div class="login-wrap"><div class="login-card">
+    <div class="login-title">🌿 Mi Huerto</div>
+    <div class="login-sub">Entra con tu usuario del recetario</div>
+    <div class="login-err" id="login-err"></div>
+    <div class="input-group"><label class="input-lbl">Email</label>
+      <input class="input" id="login-email" type="email" autocomplete="username"></div>
+    <div class="input-group"><label class="input-lbl">Contraseña</label>
+      <input class="input" id="login-pass" type="password" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')entrar()"></div>
+    <button class="btn-primary" onclick="entrar()">Entrar</button>
+  </div></div>`;
 }
 
-// ── Pronóstico de los próximos 5 días (Open-Meteo, gratis y sin clave) ──
-async function cargarPronostico() {
+async function entrar() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const err   = document.getElementById('login-err');
+  err.style.display = 'none';
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { err.textContent = 'No se pudo entrar: ' + error.message; err.style.display = 'block'; return; }
+  cargarTodo();
+}
+
+async function salir() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  await sb.auth.signOut();
+  mostrarLogin();
+}
+
+// ── carga de datos ──
+async function cargarTodo(forzado) {
+  const started = Date.now();
+  lastLoad = started;
+  try {
+    const [tiposR, cultR, regR] = await Promise.all([
+      sb.from('huerto_tipos').select('*'),
+      sb.from('huerto_cultivos').select('*').eq('activo', true).order('created_at'),
+      sb.from('huerto_registros').select('id,cultivo_id,accion,fecha').order('fecha', { ascending: false }).limit(2000),
+    ]);
+    if (tiposR.error || cultR.error || regR.error) throw (tiposR.error || cultR.error || regR.error);
+    if (lastMutation > started) return; // hubo cambios locales mientras llegaba esto
+    TIPOS = {}; (tiposR.data || []).forEach(t => TIPOS[t.tipo] = t);
+    CULTIVOS  = cultR.data || [];
+    REGISTROS = regR.data || [];
+    try { localStorage.setItem('huerto2-cache', JSON.stringify({ t: tiposR.data, c: cultR.data, r: regR.data })) } catch(e) {}
+    render(false);
+  } catch (e) {
+    if (e && e.message && e.message.indexOf('JWT') !== -1) { mostrarLogin(); return; }
+    try {
+      const cache = JSON.parse(localStorage.getItem('huerto2-cache'));
+      if (cache) {
+        TIPOS = {}; (cache.t||[]).forEach(t => TIPOS[t.tipo] = t);
+        CULTIVOS = cache.c || []; REGISTROS = cache.r || [];
+        render(true);
+        return;
+      }
+    } catch(e2) {}
+    document.getElementById('content').innerHTML =
+      '<div class="error-box">No se pudieron cargar los datos.<br><br><button class="btn-mini" onclick="cargarTodo(true)">Reintentar</button></div>';
+  }
+  cargarClima();
+}
+
+async function cargarClima() {
   try {
     const u = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}`
+      + `&current=temperature_2m,relative_humidity_2m,weather_code`
       + `&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min`
-      + `&timezone=Europe/Madrid&forecast_days=5`;
+      + `&past_days=3&forecast_days=5&timezone=Europe/Madrid`;
     const r = await fetch(u);
     const d = await r.json();
-    const dias = d.daily.time.map((t, i) => ({
-      fecha: new Date(t + 'T12:00:00'),
-      mm:    d.daily.precipitation_sum[i] || 0,
-      prob:  d.daily.precipitation_probability_max[i] || 0,
-      tmax:  Math.round(d.daily.temperature_2m_max[i]),
-      tmin:  Math.round(d.daily.temperature_2m_min[i]),
-    }));
-    const cols = dias.map((x, i) => {
+    let lluvia3d = 0;
+    for (let i = 0; i < 3; i++) lluvia3d += Number(d.daily.precipitation_sum[i] || 0);
+    const prox = [];
+    for (let j = 3; j < d.daily.time.length; j++) {
+      prox.push({
+        fecha: dLocal(d.daily.time[j]),
+        mm:    Math.round(Number(d.daily.precipitation_sum[j] || 0) * 10) / 10,
+        prob:  Number(d.daily.precipitation_probability_max[j] || 0),
+        tmax:  Math.round(d.daily.temperature_2m_max[j]),
+        tmin:  Math.round(d.daily.temperature_2m_min[j]),
+      });
+    }
+    CLIMA = {
+      temp: Number(d.current.temperature_2m),
+      hum:  Number(d.current.relative_humidity_2m),
+      desc: descClima(d.current.weather_code),
+      lluvia3d: Math.round(lluvia3d * 10) / 10,
+      prox: prox,
+    };
+    try { localStorage.setItem('huerto2-clima', JSON.stringify(CLIMA)) } catch(e) {}
+  } catch (e) {
+    try {
+      const c = JSON.parse(localStorage.getItem('huerto2-clima'));
+      if (c) { c.prox = (c.prox||[]).map(p => ({ ...p, fecha: new Date(p.fecha) })); CLIMA = c; }
+    } catch(e2) {}
+  }
+  render(false);
+}
+
+// ── último riego/abono por cultivo ──
+function ultimos(cid) {
+  let riego = null, abono = null;
+  for (const r of REGISTROS) {
+    if (r.cultivo_id !== cid) continue;
+    const f = dLocal(r.fecha);
+    if (r.accion === 'riego' && (!riego || f > riego)) riego = f;
+    if (r.accion === 'abono' && (!abono || f > abono)) abono = f;
+  }
+  return { riego, abono };
+}
+
+// ── cálculo de riego (historial + clima + pronóstico + tipo de planta) ──
+function calcRiego(c, ult) {
+  const t = TIPOS[c.tipo] || { freq_riego: 3, agua: 'media' };
+  if (!ult.riego) return { sem: '?', texto: 'Sin registros — toca 💧 la próxima vez que riegues' };
+  const H    = hoyLocal();
+  const dias = diasEntre(ult.riego, H);
+  const temp = CLIMA ? CLIMA.temp : 25;
+  const ll3  = CLIMA ? CLIMA.lluvia3d : 0;
+  const prox = CLIMA ? CLIMA.prox : [];
+
+  let freq = t.freq_riego;
+  if (temp > 32) freq -= 2; else if (temp > 28) freq -= 1;
+  if ((t.agua || '') === 'alta') freq -= 1;
+  if ((t.agua || '') === 'baja') freq += 1;
+  if (ll3 > 8) freq += 1;
+  freq = Math.max(1, Math.round(freq * (Number(c.factor_riego) || 1)));
+
+  const proxima = addDias(ult.riego, freq);
+  const quedan  = freq - dias;
+
+  let diaLluvia = null;
+  for (const p of prox) { if (p.mm >= 5) { diaLluvia = p; break; } }
+  const et = f => { const dd = diasEntre(H, f); return dd <= 0 ? 'hoy' : dd === 1 ? 'mañana' : 'el ' + fmt(f); };
+
+  if (ll3 > 15)   return { sem: 'ok', texto: 'No regar — han caído ' + ll3.toFixed(0) + 'mm estos 3 días' };
+  if (dias <= 0)  return { sem: 'ok', texto: 'Regado hoy' };
+  if (quedan <= 0) {
+    if (diaLluvia && diasEntre(H, diaLluvia.fecha) <= 1)
+      return { sem: 'pronto', texto: 'Tocaría regar, pero se prevén ' + diaLluvia.mm.toFixed(0) + 'mm ' + et(diaLluvia.fecha) + ' — puedes esperar' };
+    return { sem: 'urgente', texto: (temp > 28 ? 'REGAR HOY — calor alto + ' + dias + 'd sin regar' : 'REGAR HOY — ' + dias + 'd sin regar') };
+  }
+  if (quedan <= Math.ceil(freq * 0.5)) {
+    if (diaLluvia && diasEntre(H, diaLluvia.fecha) <= quedan)
+      return { sem: 'ok', texto: 'Se prevén ' + diaLluvia.mm.toFixed(0) + 'mm ' + et(diaLluvia.fecha) + ' — probablemente no haga falta' };
+    return { sem: 'pronto', texto: 'Regar pronto — quedan ~' + quedan + 'd (próximo ' + fmt(proxima) + ')' };
+  }
+  return { sem: 'ok', texto: 'Regado hace ' + dias + 'd · próximo ~' + fmt(proxima) };
+}
+
+function calcAbono(c, ult) {
+  const t = TIPOS[c.tipo] || { freq_abono: 21 };
+  if (!ult.abono) return { sem: '?', texto: 'Sin registros — toca 🌱 cuando abones' };
+  const H     = hoyLocal();
+  const dias  = diasEntre(ult.abono, H);
+  const rest  = t.freq_abono - dias;
+  const proxF = addDias(ult.abono, t.freq_abono);
+  let diaLluvia = null;
+  for (const p of (CLIMA ? CLIMA.prox : [])) { if (p.mm >= 5) { diaLluvia = p; break; } }
+  if (rest <= 0) {
+    if (diaLluvia && diasEntre(H, diaLluvia.fecha) <= 1)
+      return { sem: 'pronto', texto: 'Toca abonar, pero viene lluvia (' + diaLluvia.mm.toFixed(0) + 'mm) — mejor después' };
+    return { sem: 'urgente', texto: 'ABONAR — ' + dias + 'd desde el último' };
+  }
+  if (rest <= 3) return { sem: 'pronto', texto: 'Abonar en ' + rest + ' día(s) (~' + fmt(proxF) + ')' };
+  return { sem: 'ok', texto: 'En ' + rest + 'd (~' + fmt(proxF) + ')' };
+}
+
+function calcCosecha(c) {
+  const t = TIPOS[c.tipo];
+  if (!t || !c.fecha_plantacion) return null;
+  const total = (c.metodo || '').indexOf('semilla') !== -1 ? t.dias_cosecha_semilla : t.dias_cosecha_trasplante;
+  if (!total) return null;
+  const rest = total - diasEntre(dLocal(c.fecha_plantacion), hoyLocal());
+  if (rest <= 0) return 'Lista para cosechar';
+  return '~' + rest + 'd (' + fmt(addDias(hoyLocal(), rest)) + ')';
+}
+
+const SEM = {
+  urgente: { badge: 'badge-urgente', card: 'urgente', txt: 'URGENTE' },
+  pronto:  { badge: 'badge-pronto',  card: 'pronto',  txt: 'PRONTO' },
+  ok:      { badge: 'badge-ok',      card: 'ok',      txt: 'OK' },
+  '?':     { badge: 'badge-neutral', card: '',        txt: '?' },
+};
+
+// ── render ──
+function render(desdeCache) {
+  if (!CULTIVOS.length && !desdeCache) { /* puede pasar en el primer arranque */ }
+
+  const vms = CULTIVOS.map(c => {
+    const ult   = ultimos(c.id);
+    const riego = calcRiego(c, ult);
+    const abono = calcAbono(c, ult);
+    return { c, ult, riego, abono, cosecha: calcCosecha(c) };
+  });
+  const rank = { urgente: 0, pronto: 1, '?': 2, ok: 3 };
+  vms.sort((a, b) => (rank[a.riego.sem] - rank[b.riego.sem]) || a.c.nombre.localeCompare(b.c.nombre));
+
+  const urg = vms.filter(v => v.riego.sem === 'urgente' || v.abono.sem === 'urgente').length;
+  const pro = vms.filter(v => v.riego.sem === 'pronto'  || v.abono.sem === 'pronto').length;
+  const resumen = urg > 0
+    ? `<div class="aviso aviso-rojo">🔴 ${urg} cultivo${urg>1?'s':''} necesita${urg>1?'n':''} atención hoy</div>`
+    : pro > 0
+    ? `<div class="aviso aviso-ambar">🟡 ${pro} cultivo${pro>1?'s':''} necesita${pro>1?'n':''} atención pronto</div>`
+    : `<div class="aviso aviso-verde">🟢 Todo en orden — nada urgente hoy</div>`;
+
+  let climaHTML = '', pronoHTML = '';
+  if (CLIMA) {
+    climaHTML = `<div class="clima-card">
+      <div class="clima-item"><div class="clima-val">${CLIMA.temp.toFixed(0)}°C</div><div class="clima-lbl">Temperatura</div></div>
+      <div class="clima-item"><div class="clima-val">${CLIMA.hum.toFixed(0)}%</div><div class="clima-lbl">Humedad</div></div>
+      <div class="clima-item"><div class="clima-val">${CLIMA.lluvia3d}mm</div><div class="clima-lbl">Lluvia 3d</div></div>
+      <div class="clima-item"><div class="clima-val" style="font-size:14px;padding-top:4px">${CLIMA.desc}</div><div class="clima-lbl">Estado</div></div>
+    </div>`;
+    const cols = CLIMA.prox.map((x, i) => {
       const dow = i === 0 ? 'Hoy' : x.fecha.toLocaleDateString('es-ES', { weekday: 'short' });
       const ico = x.mm >= 1 || x.prob >= 60 ? '🌧' : x.prob >= 30 ? '🌤' : '☀️';
       return `<div class="prono-day ${x.mm >= 1 ? 'lluvia' : ''}">
-        <div class="prono-dow">${dow}</div>
-        <div class="prono-ico">${ico}</div>
+        <div class="prono-dow">${dow}</div><div class="prono-ico">${ico}</div>
         <div class="prono-tmp">${x.tmax}°/${x.tmin}°</div>
-        <div class="prono-mm">${x.mm >= 0.5 ? x.mm.toFixed(1) + 'mm' : ''}</div>
-      </div>`;
+        <div class="prono-mm">${x.mm >= 0.5 ? x.mm.toFixed(1)+'mm' : ''}</div></div>`;
     }).join('');
-    // Aviso orientativo según lluvia/calor previstos
-    const lluvia3 = dias.slice(0, 3).reduce((s, x) => s + x.mm, 0);
-    const maxTemp = Math.max(...dias.slice(0, 3).map(x => x.tmax));
-    let aviso = '';
-    if (lluvia3 >= 5) {
-      aviso = `<div class="prono-aviso aviso-lluvia">🌧 Se esperan ${lluvia3.toFixed(0)} mm en los próximos 3 días — probablemente puedas retrasar algún riego.</div>`;
-    } else if (lluvia3 < 1 && maxTemp >= 34) {
-      aviso = `<div class="prono-aviso aviso-calor">☀️ Sin lluvia y máximas de ${maxTemp}°C — vigila los riegos, sobre todo macetas y plantones.</div>`;
-    }
-    pronosticoHTML = `<div class="prono-card">
-      <div class="prono-title">Pronóstico · Dílar</div>
-      <div class="prono-grid">${cols}</div>
-      ${aviso}
-    </div>`;
-    const el = document.getElementById('pronostico');
-    if (el) el.outerHTML = pronosticoHTML.replace('<div class="prono-card">', '<div class="prono-card" id="pronostico">');
-  } catch (e) { /* sin pronóstico no pasa nada, la app sigue */ }
-}
-
-function renderCultivos(cultivos) {
-  if (!cultivos || cultivos.length === 0) return `<div style="text-align:center;padding:40px;color:#888;">No hay cultivos registrados.</div>`;
-  return cultivos.map((c, i) => `
-  <div class="plant-card ${getCardClass(c.semaforoRiego)}" onclick="verDetalle(${i})">
-    <div class="plant-header">
-      <div><div class="plant-name">${c.nombre || c.tipo}</div><div class="plant-tipo">${c.tipo} · ${c.metodo}</div></div>
-      <span class="badge ${getBadgeClass(c.semaforoRiego)}">${c.semaforoRiego || '?'}</span>
-    </div>
-    <div class="plant-rows">
-      <div class="plant-row"><span class="plant-row-lbl">Riego</span><span class="plant-row-val">${c.recomRiego || '—'}</span></div>
-      <div class="plant-row"><span class="plant-row-lbl">Cosecha</span><span class="plant-row-val">${c.diasCosecha || '—'}</span></div>
-      <div class="plant-row"><span class="plant-row-lbl">Fertilizar</span><span class="plant-row-val">${c.proximaFert || '—'}</span></div>
-    </div>
-    <div class="quick-btns">
-      <button class="quick-btn quick-riego" onclick="registrar(event, ${i}, 'Riego')">💧 Regado</button>
-      <button class="quick-btn quick-fert"  onclick="registrar(event, ${i}, 'Fertilizacion')">🌱 Abonado</button>
-    </div>
-  </div>`).join('');
-}
-
-function verDetalle(i) {
-  const c = datosGlobales.cultivos[i];
-  document.getElementById('detail-content').innerHTML = `
-    <div class="detail-header">
-      <div><div class="detail-name">${c.nombre || c.tipo}</div><div class="detail-sub">${c.tipo} · ${c.metodo}</div></div>
-      <button class="btn-close" onclick="cerrarDetalle()">✕</button>
-    </div>
-    <div class="action-btns">
-      <button class="btn-action btn-riego" onclick="registrar(event, ${i}, 'Riego')">
-        <span class="btn-icon">💧</span><span class="btn-lbl">Registrar riego</span>
-      </button>
-      <button class="btn-action btn-fert" onclick="registrar(event, ${i}, 'Fertilizacion')">
-        <span class="btn-icon">🌱</span><span class="btn-lbl">Registrar fertilización</span>
-      </button>
-    </div>
-    <div class="detail-section">
-      <div class="detail-section-title">Estado del cultivo</div>
-      <div class="detail-row"><span class="detail-row-lbl">Riego</span><span class="detail-row-val">${c.recomRiego || '—'}</span></div>
-      <div class="detail-row"><span class="detail-row-lbl">Semáforo riego</span><span class="detail-row-val"><span class="badge ${getBadgeClass(c.semaforoRiego)}">${c.semaforoRiego || '?'}</span></span></div>
-      <div class="detail-row"><span class="detail-row-lbl">Fertilización</span><span class="detail-row-val">${c.proximaFert || '—'}</span></div>
-      <div class="detail-row"><span class="detail-row-lbl">Semáforo fert.</span><span class="detail-row-val"><span class="badge ${getBadgeClass(c.semaforoFert)}">${c.semaforoFert || '?'}</span></span></div>
-    </div>
-    <div class="detail-section">
-      <div class="detail-section-title">Cosecha</div>
-      <div class="detail-row"><span class="detail-row-lbl">Días restantes</span><span class="detail-row-val">${c.diasCosecha || '—'}</span></div>
-      <div class="detail-row"><span class="detail-row-lbl">Fecha estimada</span><span class="detail-row-val">${c.fechaCosecha || '—'}</span></div>
-    </div>
-    <div class="detail-section">
-      <div class="detail-section-title">Información</div>
-      <div class="detail-row"><span class="detail-row-lbl">Plantado</span><span class="detail-row-val">${c.fechaPlant || '—'}</span></div>
-      <div class="detail-row"><span class="detail-row-lbl">Último riego</span><span class="detail-row-val">${c.ultimoRiego || '—'}</span></div>
-      <div class="detail-row"><span class="detail-row-lbl">Temporada</span><span class="detail-row-val">${c.temporada || '—'}</span></div>
-      ${c.descripcion ? `<div class="detail-row"><span class="detail-row-lbl">Descripción</span><span class="detail-row-val">${c.descripcion}</span></div>` : ''}
-    </div>`;
-  document.getElementById('overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function cerrarDetalle(e) {
-  if (e && e.target !== document.getElementById('overlay')) return;
-  document.getElementById('overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-// ── Registro con UN toque: llama directamente al Apps Script ──
-async function registrar(ev, i, tipo) {
-  ev.stopPropagation();
-  ev.preventDefault();
-  const c    = datosGlobales.cultivos[i];
-  const btn  = ev.currentTarget;
-  const orig = btn.innerHTML;
-  btn.innerHTML = '⏳ Guardando…';
-  btn.disabled  = true;
-  try {
-    const r = await fetch(API_URL
-      + '?accion=registrar&cultivo=' + encodeURIComponent(c.nombre || c.tipo)
-      + '&tipo=' + encodeURIComponent(tipo));
-    const datos = await r.json();
-    datosGlobales = datos;
-    lastLoad = Date.now();
-    try { localStorage.setItem('huerto-cache', JSON.stringify(datos)) } catch(e) {}
-    document.getElementById('overlay').classList.remove('open');
-    document.body.style.overflow = '';
-    renderTodo(datos, false);
-    toast((tipo === 'Riego' ? '💧 ' : '🌱 ') + (c.nombre || c.tipo) + ' — registrado');
-  } catch(e) {
-    btn.innerHTML = orig;
-    btn.disabled  = false;
-    toast('⚠️ Sin conexión — no se pudo registrar. Inténtalo con cobertura.', true);
+    pronoHTML = `<div class="prono-card"><div class="prono-title">Pronóstico · Dílar</div><div class="prono-grid">${cols}</div></div>`;
   }
+
+  const cards = vms.map(v => {
+    const s = SEM[v.riego.sem] || SEM['?'];
+    return `<div class="plant-card ${s.card}">
+      <div class="plant-header" onclick="verDetalle('${v.c.id}')">
+        <div><div class="plant-name">${esc(v.c.nombre)}</div>
+        <div class="plant-tipo">${esc(v.c.tipo)}${v.c.notas ? ' · ' + esc(v.c.notas) : ''}</div></div>
+        <span class="badge ${s.badge}">${SEM[v.riego.sem].txt}</span>
+      </div>
+      <div class="plant-rows" onclick="verDetalle('${v.c.id}')">
+        <div class="plant-row"><span class="plant-row-lbl">Riego</span><span class="plant-row-val">${v.riego.texto}</span></div>
+        <div class="plant-row"><span class="plant-row-lbl">Abono</span><span class="plant-row-val">${v.abono.texto}</span></div>
+        ${v.cosecha ? `<div class="plant-row"><span class="plant-row-lbl">Cosecha</span><span class="plant-row-val">${v.cosecha}</span></div>` : ''}
+      </div>
+      <div class="quick-btns">
+        <button class="quick-btn quick-riego" onclick="registrar('${v.c.id}','riego',event)">💧 Regado</button>
+        <button class="quick-btn quick-fert"  onclick="registrar('${v.c.id}','abono',event)">🌱 Abonado</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('content').innerHTML = `
+    ${desdeCache ? '<div class="cache-nota">📶 Sin conexión — mostrando los últimos datos guardados</div>' : ''}
+    ${climaHTML}${pronoHTML}${resumen}
+    <button class="btn-regar-todo" onclick="regarTodo(event)">💧 He regado todo el huerto</button>
+    <div class="section-title"><span>Mis cultivos (${CULTIVOS.length})</span>
+      <button class="btn-mini" onclick="abrirNuevo()">+ Añadir</button></div>
+    ${cards || '<div style="text-align:center;padding:30px;color:#888">No hay cultivos. Añade el primero con “+ Añadir”.</div>'}
+    <div class="last-update">Última actualización: ${new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</div>`;
 }
+
+// ── registrar riego/abono: UN toque, guardado instantáneo ──
+async function registrar(cid, accion, ev) {
+  if (ev) { ev.stopPropagation(); }
+  lastMutation = Date.now();
+  const c = CULTIVOS.find(x => x.id === cid);
+  const btn = ev ? ev.currentTarget : null;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+  const { data, error } = await sb.from('huerto_registros')
+    .insert({ cultivo_id: cid, accion: accion, fecha: isoLocal(hoyLocal()) })
+    .select('id').single();
+  if (error) {
+    if (btn) { btn.disabled = false; btn.textContent = accion === 'riego' ? '💧 Regado' : '🌱 Abonado'; }
+    toast('⚠️ No se pudo guardar — comprueba la cobertura', true);
+    return;
+  }
+  REGISTROS.unshift({ id: data.id, cultivo_id: cid, accion: accion, fecha: isoLocal(hoyLocal()) });
+  render(false);
+  toastDeshacer((accion === 'riego' ? '💧 ' : '🌱 ') + c.nombre + ' — registrado', data.id);
+}
+
+async function regarTodo(ev) {
+  if (!CULTIVOS.length) return;
+  if (!confirm('¿Registrar RIEGO de los ' + CULTIVOS.length + ' cultivos, con fecha de hoy?')) return;
+  lastMutation = Date.now();
+  const btn = ev ? ev.currentTarget : null;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Guardando…'; }
+  const hoyIso = isoLocal(hoyLocal());
+  const filas = CULTIVOS.map(c => ({ cultivo_id: c.id, accion: 'riego', fecha: hoyIso }));
+  const { data, error } = await sb.from('huerto_registros').insert(filas).select('id,cultivo_id,accion,fecha');
+  if (btn) { btn.disabled = false; btn.textContent = '💧 He regado todo el huerto'; }
+  if (error) { toast('⚠️ No se pudo guardar', true); return; }
+  (data || []).forEach(r => REGISTROS.unshift(r));
+  render(false);
+  toast('💧 Riego registrado en ' + CULTIVOS.length + ' cultivos');
+}
+
+async function deshacer(regId) {
+  lastMutation = Date.now();
+  await sb.from('huerto_registros').delete().eq('id', regId);
+  REGISTROS = REGISTROS.filter(r => r.id !== regId);
+  render(false);
+  toast('Deshecho');
+}
+
+// ── detalle: historial + calibración ──
+function verDetalle(cid) {
+  const c = CULTIVOS.find(x => x.id === cid);
+  if (!c) return;
+  const t    = TIPOS[c.tipo] || {};
+  const ult  = ultimos(cid);
+  const hist = REGISTROS.filter(r => r.cultivo_id === cid).slice(0, 15);
+  const factor = Number(c.factor_riego) || 1;
+  document.getElementById('detalle-content').innerHTML = `
+    <div class="d-header">
+      <div><div class="d-name">${esc(c.nombre)}</div>
+      <div class="d-sub">${esc(c.tipo)} · ${esc(c.metodo || '')}${c.fecha_plantacion ? ' · plantado ' + fmt(dLocal(c.fecha_plantacion)) : ''}</div></div>
+      <button class="btn-close" onclick="cerrar('ov-detalle')">✕</button>
+    </div>
+    <div class="quick-btns" style="margin-bottom:18px">
+      <button class="quick-btn quick-riego" onclick="registrar('${c.id}','riego',event);cerrar('ov-detalle')">💧 Regado hoy</button>
+      <button class="quick-btn quick-fert"  onclick="registrar('${c.id}','abono',event);cerrar('ov-detalle')">🌱 Abonado hoy</button>
+    </div>
+    <div class="d-section">
+      <div class="d-title">Ajuste fino del riego (este cultivo)</div>
+      <div style="font-size:12px;color:#888;margin-bottom:8px">
+        Frecuencia base: cada ${t.freq_riego || '?'} días · ajuste actual: ×${factor.toFixed(2)}
+      </div>
+      <div class="calib-btns">
+        <button class="calib-btn" onclick="calibrar('${c.id}', -0.15)">🥀 Se secó antes de tiempo<br><span style="font-weight:400;color:#888">(regar más a menudo)</span></button>
+        <button class="calib-btn" onclick="calibrar('${c.id}', 0.15)">💪 Aguantó de sobra<br><span style="font-weight:400;color:#888">(regar menos a menudo)</span></button>
+      </div>
+    </div>
+    <div class="d-section">
+      <div class="d-title">Datos</div>
+      <div class="d-row"><span class="d-lbl">Último riego</span><span class="d-val">${ult.riego ? fmt(ult.riego) : '—'}</span></div>
+      <div class="d-row"><span class="d-lbl">Último abono</span><span class="d-val">${ult.abono ? fmt(ult.abono) : '—'}</span></div>
+      <div class="d-row"><span class="d-lbl">Necesidad de agua</span><span class="d-val">${esc(t.agua || 'media')}</span></div>
+      <div class="d-row"><span class="d-lbl">Abono cada</span><span class="d-val">${t.freq_abono || '?'} días</span></div>
+      ${c.notas ? `<div class="d-row"><span class="d-lbl">Notas</span><span class="d-val">${esc(c.notas)}</span></div>` : ''}
+    </div>
+    <div class="d-section">
+      <div class="d-title">Historial reciente</div>
+      ${hist.length ? hist.map(r => `<div class="hist-item">
+          <span>${r.accion === 'riego' ? '💧 Riego' : '🌱 Abono'}</span>
+          <span style="color:#888">${fmt(dLocal(r.fecha))}</span></div>`).join('')
+        : '<div style="font-size:13px;color:#888">Sin registros todavía.</div>'}
+    </div>
+    <button class="btn-danger-soft" onclick="archivar('${c.id}')">🗄 Archivar cultivo (temporada terminada)</button>`;
+  document.getElementById('ov-detalle').classList.add('open');
+}
+
+async function calibrar(cid, delta) {
+  lastMutation = Date.now();
+  const c = CULTIVOS.find(x => x.id === cid);
+  let f = (Number(c.factor_riego) || 1) + delta;
+  f = Math.max(0.5, Math.min(1.5, Math.round(f * 100) / 100));
+  c.factor_riego = f;
+  await sb.from('huerto_cultivos').update({ factor_riego: f }).eq('id', cid);
+  verDetalle(cid);
+  render(false);
+  toast('Ajuste guardado: ×' + f.toFixed(2));
+}
+
+async function archivar(cid) {
+  const c = CULTIVOS.find(x => x.id === cid);
+  if (!confirm('¿Archivar "' + c.nombre + '"? Dejará de aparecer (su historial se conserva).')) return;
+  lastMutation = Date.now();
+  await sb.from('huerto_cultivos').update({ activo: false }).eq('id', cid);
+  CULTIVOS = CULTIVOS.filter(x => x.id !== cid);
+  cerrar('ov-detalle');
+  render(false);
+}
+
+// ── añadir cultivo ──
+function abrirNuevo() {
+  const opts = Object.keys(TIPOS).sort().map(t => `<option value="${t}">${t}</option>`).join('');
+  document.getElementById('nuevo-content').innerHTML = `
+    <div class="d-header"><div class="d-name">Añadir cultivo</div>
+      <button class="btn-close" onclick="cerrar('ov-nuevo')">✕</button></div>
+    <div class="input-group"><label class="input-lbl">Nombre *</label>
+      <input class="input" id="nc-nombre" placeholder="Ej: Tomates terraza"></div>
+    <div class="input-group"><label class="input-lbl">Tipo de planta</label>
+      <select class="input" id="nc-tipo">${opts}</select></div>
+    <div class="input-group"><label class="input-lbl">Método</label>
+      <select class="input" id="nc-metodo"><option value="trasplante">Trasplante</option><option value="semilla">Semilla</option></select></div>
+    <div class="input-group"><label class="input-lbl">Fecha de plantación (opcional)</label>
+      <input class="input" id="nc-fecha" type="date"></div>
+    <div class="input-group"><label class="input-lbl">Notas (opcional)</label>
+      <input class="input" id="nc-notas" placeholder="Ej: parterre junto al peral"></div>
+    <button class="btn-primary" onclick="guardarNuevo(event)">Guardar</button>`;
+  document.getElementById('ov-nuevo').classList.add('open');
+}
+
+async function guardarNuevo(ev) {
+  const nombre = document.getElementById('nc-nombre').value.trim();
+  if (!nombre) { toast('Ponle un nombre', true); return; }
+  lastMutation = Date.now();
+  const btn = ev.currentTarget; btn.disabled = true; btn.textContent = 'Guardando…';
+  const { data, error } = await sb.from('huerto_cultivos').insert({
+    nombre: nombre,
+    tipo:   document.getElementById('nc-tipo').value,
+    metodo: document.getElementById('nc-metodo').value,
+    fecha_plantacion: document.getElementById('nc-fecha').value || null,
+    notas:  document.getElementById('nc-notas').value.trim() || null,
+  }).select('*').single();
+  btn.disabled = false; btn.textContent = 'Guardar';
+  if (error) { toast('⚠️ No se pudo guardar', true); return; }
+  CULTIVOS.push(data);
+  cerrar('ov-nuevo');
+  render(false);
+  toast('🌿 ' + nombre + ' añadido');
+}
+
+// ── UI helpers ──
+function cerrar(id) { document.getElementById(id).classList.remove('open'); }
 
 function toast(msg, esError) {
   const t = document.createElement('div');
@@ -286,69 +596,22 @@ function toast(msg, esError) {
   setTimeout(() => t.remove(), 3000);
 }
 
-async function forzarActualizacion() {
-  const btn = document.querySelector('.btn-refresh');
-  if (btn) { btn.textContent = '...'; btn.disabled = true; }
-  try {
-    await fetch(API_URL + '?accion=actualizar');
-  } catch(e) {}
-  await cargarDatos();
-  if (btn) { btn.textContent = 'Actualizar'; btn.disabled = false; }
+function toastDeshacer(msg, regId) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<span>${esc(msg)}</span><button onclick="deshacer('${regId}');this.parentElement.remove()">Deshacer</button>`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 6000);
 }
 
-function renderTodo(datos, desdeCache) {
-  const urgentes = datos.cultivos.filter(c => (c.semaforoRiego||'').includes('URGENTE') || (c.semaforoFert||'').includes('URGENTE')).length;
-  const prontos  = datos.cultivos.filter(c => (c.semaforoRiego||'').includes('PRONTO')  || (c.semaforoFert||'').includes('PRONTO')).length;
-  const resumen  = urgentes > 0
-    ? `<div style="background:#FFEBEE;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#C62828;font-weight:500;">🔴 ${urgentes} cultivo${urgentes>1?'s':''} necesita${urgentes>1?'n':''} atención urgente hoy</div>`
-    : prontos > 0
-    ? `<div style="background:#FFF8E1;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#F57F17;font-weight:500;">🟡 ${prontos} cultivo${prontos>1?'s':''} necesita${prontos>1?'n':''} atención pronto</div>`
-    : `<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#2E7D32;font-weight:500;">🟢 Todo en orden — nada urgente hoy</div>`;
-  const nota = desdeCache
-    ? `<div class="cache-nota">📶 Sin conexión — mostrando los últimos datos guardados</div>` : '';
-  document.getElementById('content').innerHTML = `
-    ${nota}
-    ${renderClima(datos.clima)}
-    ${pronosticoHTML ? pronosticoHTML.replace('<div class="prono-card">', '<div class="prono-card" id="pronostico">') : '<div id="pronostico"></div>'}
-    ${resumen}
-    <div class="section-title">Mis cultivos (${datos.cultivos.length})</div>
-    ${renderCultivos(datos.cultivos)}
-    <div class="last-update">Última actualización: ${new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</div>`;
-}
-
-async function cargarDatos() {
-  lastLoad = Date.now();
-  try {
-    const r     = await fetch(API_URL);
-    const datos = await r.json();
-    datosGlobales = datos;
-    // Guardar copia local para cuando no haya cobertura en el huerto
-    try { localStorage.setItem('huerto-cache', JSON.stringify(datos)) } catch(e) {}
-    renderTodo(datos, false);
-  } catch(e) {
-    // Sin conexión: usar la última copia guardada
-    try {
-      const cache = JSON.parse(localStorage.getItem('huerto-cache'));
-      if (cache) { datosGlobales = cache; renderTodo(cache, true); return }
-    } catch(e2) {}
-    document.getElementById('content').innerHTML = `<div class="error-box">No se pudieron cargar los datos.<br><br>
-      <button onclick="cargarDatos()" style="margin-top:10px;padding:8px 16px;background:#C62828;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;">Reintentar</button></div>`;
-  }
-}
-
-// Recargar al volver a la app (p. ej. después de enviar el formulario),
-// con freno de 60s para no recargar en cada toque
-function refrescoAlVolver() {
+// Recargar al volver a la app (freno de 60s + descarte si hay cambios locales)
+document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   if (Date.now() - lastLoad < 60 * 1000) return;
-  cargarDatos();
-  cargarPronostico();
-}
-document.addEventListener('visibilitychange', refrescoAlVolver);
+  if (sb) sb.auth.getSession().then(({ data: { session } }) => { if (session) cargarTodo(); });
+});
 
-cargarDatos();
-cargarPronostico();
-setInterval(cargarDatos, 30 * 60 * 1000);
+init();
 </script>
 </body>
 </html>
