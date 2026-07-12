@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mi Huerto">
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Mi Huerto</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -17,11 +18,24 @@
   header span { font-size: 13px; opacity: 0.7; }
   .btn-refresh { background: rgba(255,255,255,0.15); border: none; color: white; padding: 7px 13px; border-radius: 20px; font-size: 13px; cursor: pointer; font-family: inherit; }
   .container { max-width: 600px; margin: 0 auto; padding: 16px; }
-  .clima-card { background: #1B4332; color: white; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .clima-card { background: #1B4332; color: white; border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .clima-item { text-align: center; }
   .clima-val { font-size: 22px; font-weight: 600; }
   .clima-lbl { font-size: 11px; opacity: 0.7; margin-top: 2px; }
   .clima-footer { grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 10px; font-size: 12px; opacity: 0.6; text-align: center; }
+  /* Pronóstico */
+  .prono-card { background: white; border: 1px solid #E8EDE8; border-radius: 16px; padding: 12px 10px 10px; margin-bottom: 12px; }
+  .prono-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #999; text-align: center; margin-bottom: 8px; }
+  .prono-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .prono-day { text-align: center; padding: 6px 2px; border-radius: 10px; }
+  .prono-day.lluvia { background: #E8F1FB; }
+  .prono-dow { font-size: 11px; font-weight: 600; color: #666; text-transform: capitalize; }
+  .prono-ico { font-size: 20px; margin: 3px 0; }
+  .prono-tmp { font-size: 11px; color: #333; font-weight: 500; }
+  .prono-mm  { font-size: 10px; color: #1565C0; font-weight: 600; margin-top: 1px; min-height: 12px; }
+  .prono-aviso { margin-top: 8px; font-size: 12px; border-radius: 10px; padding: 8px 12px; line-height: 1.5; }
+  .aviso-lluvia { background: #E8F1FB; color: #1565C0; }
+  .aviso-calor  { background: #FFF3E0; color: #E65100; }
   .section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #666; margin-bottom: 10px; }
   .plant-card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 10px; cursor: pointer; border: 1px solid #E8EDE8; transition: transform 0.1s; }
   .plant-card:active { transform: scale(0.98); }
@@ -40,6 +54,11 @@
   .plant-row { display: flex; justify-content: space-between; font-size: 13px; }
   .plant-row-lbl { color: #888; }
   .plant-row-val { font-weight: 500; color: #333; text-align: right; max-width: 65%; }
+  .quick-btns { display: flex; gap: 8px; margin-top: 12px; }
+  .quick-btn { flex: 1; text-align: center; padding: 8px 4px; border-radius: 10px; font-size: 12px; font-weight: 600; text-decoration: none; }
+  .quick-riego { background: #E3F2FD; color: #1565C0; }
+  .quick-fert  { background: #F3E5F5; color: #6A1B9A; }
+  .cache-nota { background: #FFF8E1; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #856404; margin-bottom: 12px; text-align: center; }
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: flex-end; }
   .overlay.open { display: flex; }
   .detail-sheet { background: white; width: 100%; max-height: 90vh; border-radius: 20px 20px 0 0; padding: 20px; overflow-y: auto; animation: slideUp 0.25s ease; }
@@ -85,7 +104,12 @@ const FORM_BASE = 'https://docs.google.com/forms/d/e/1FAIpQLSeVQsvUV_AZ6rJ4JcC3X
 const ENTRY_CULTIVO = 'entry.1850594090';
 const ENTRY_ACCION  = 'entry.1825585105';
 
-let datosGlobales = null;
+// Ubicación del huerto: Cañadas del Parque, Dílar (Granada)
+const LAT = 37.069, LON = -3.593;
+
+let datosGlobales  = null;
+let pronosticoHTML = '';
+let lastLoad       = 0;
 
 document.getElementById('header-date').textContent = new Date().toLocaleDateString('es-ES', {weekday:'long',day:'numeric',month:'long'});
 
@@ -122,6 +146,50 @@ function renderClima(c) {
   </div>`;
 }
 
+// ── Pronóstico de los próximos 5 días (Open-Meteo, gratis y sin clave) ──
+async function cargarPronostico() {
+  try {
+    const u = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}`
+      + `&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min`
+      + `&timezone=Europe/Madrid&forecast_days=5`;
+    const r = await fetch(u);
+    const d = await r.json();
+    const dias = d.daily.time.map((t, i) => ({
+      fecha: new Date(t + 'T12:00:00'),
+      mm:    d.daily.precipitation_sum[i] || 0,
+      prob:  d.daily.precipitation_probability_max[i] || 0,
+      tmax:  Math.round(d.daily.temperature_2m_max[i]),
+      tmin:  Math.round(d.daily.temperature_2m_min[i]),
+    }));
+    const cols = dias.map((x, i) => {
+      const dow = i === 0 ? 'Hoy' : x.fecha.toLocaleDateString('es-ES', { weekday: 'short' });
+      const ico = x.mm >= 1 || x.prob >= 60 ? '🌧' : x.prob >= 30 ? '🌤' : '☀️';
+      return `<div class="prono-day ${x.mm >= 1 ? 'lluvia' : ''}">
+        <div class="prono-dow">${dow}</div>
+        <div class="prono-ico">${ico}</div>
+        <div class="prono-tmp">${x.tmax}°/${x.tmin}°</div>
+        <div class="prono-mm">${x.mm >= 0.5 ? x.mm.toFixed(1) + 'mm' : ''}</div>
+      </div>`;
+    }).join('');
+    // Aviso orientativo según lluvia/calor previstos
+    const lluvia3 = dias.slice(0, 3).reduce((s, x) => s + x.mm, 0);
+    const maxTemp = Math.max(...dias.slice(0, 3).map(x => x.tmax));
+    let aviso = '';
+    if (lluvia3 >= 5) {
+      aviso = `<div class="prono-aviso aviso-lluvia">🌧 Se esperan ${lluvia3.toFixed(0)} mm en los próximos 3 días — probablemente puedas retrasar algún riego.</div>`;
+    } else if (lluvia3 < 1 && maxTemp >= 34) {
+      aviso = `<div class="prono-aviso aviso-calor">☀️ Sin lluvia y máximas de ${maxTemp}°C — vigila los riegos, sobre todo macetas y plantones.</div>`;
+    }
+    pronosticoHTML = `<div class="prono-card">
+      <div class="prono-title">Pronóstico · Dílar</div>
+      <div class="prono-grid">${cols}</div>
+      ${aviso}
+    </div>`;
+    const el = document.getElementById('pronostico');
+    if (el) el.outerHTML = pronosticoHTML.replace('<div class="prono-card">', '<div class="prono-card" id="pronostico">');
+  } catch (e) { /* sin pronóstico no pasa nada, la app sigue */ }
+}
+
 function renderCultivos(cultivos) {
   if (!cultivos || cultivos.length === 0) return `<div style="text-align:center;padding:40px;color:#888;">No hay cultivos registrados.</div>`;
   return cultivos.map((c, i) => `
@@ -135,12 +203,15 @@ function renderCultivos(cultivos) {
       <div class="plant-row"><span class="plant-row-lbl">Cosecha</span><span class="plant-row-val">${c.diasCosecha || '—'}</span></div>
       <div class="plant-row"><span class="plant-row-lbl">Fertilizar</span><span class="plant-row-val">${c.proximaFert || '—'}</span></div>
     </div>
+    <div class="quick-btns">
+      <a class="quick-btn quick-riego" href="${formUrl(c.nombre || c.tipo, 'Riego')}" target="_top" onclick="event.stopPropagation()">💧 Regado</a>
+      <a class="quick-btn quick-fert"  href="${formUrl(c.nombre || c.tipo, 'Fertilización')}" target="_top" onclick="event.stopPropagation()">🌱 Abonado</a>
+    </div>
   </div>`).join('');
 }
 
 function verDetalle(i) {
   const c = datosGlobales.cultivos[i];
-  const nombre = encodeURIComponent(c.nombre || c.tipo);
   document.getElementById('detail-content').innerHTML = `
     <div class="detail-header">
       <div><div class="detail-name">${c.nombre || c.tipo}</div><div class="detail-sub">${c.tipo} · ${c.metodo}</div></div>
@@ -196,32 +267,58 @@ async function forzarActualizacion() {
   if (btn) { btn.textContent = 'Actualizar'; btn.disabled = false; }
 }
 
+function renderTodo(datos, desdeCache) {
+  const urgentes = datos.cultivos.filter(c => (c.semaforoRiego||'').includes('URGENTE') || (c.semaforoFert||'').includes('URGENTE')).length;
+  const prontos  = datos.cultivos.filter(c => (c.semaforoRiego||'').includes('PRONTO')  || (c.semaforoFert||'').includes('PRONTO')).length;
+  const resumen  = urgentes > 0
+    ? `<div style="background:#FFEBEE;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#C62828;font-weight:500;">🔴 ${urgentes} cultivo${urgentes>1?'s':''} necesita${urgentes>1?'n':''} atención urgente hoy</div>`
+    : prontos > 0
+    ? `<div style="background:#FFF8E1;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#F57F17;font-weight:500;">🟡 ${prontos} cultivo${prontos>1?'s':''} necesita${prontos>1?'n':''} atención pronto</div>`
+    : `<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#2E7D32;font-weight:500;">🟢 Todo en orden — nada urgente hoy</div>`;
+  const nota = desdeCache
+    ? `<div class="cache-nota">📶 Sin conexión — mostrando los últimos datos guardados</div>` : '';
+  document.getElementById('content').innerHTML = `
+    ${nota}
+    ${renderClima(datos.clima)}
+    ${pronosticoHTML ? pronosticoHTML.replace('<div class="prono-card">', '<div class="prono-card" id="pronostico">') : '<div id="pronostico"></div>'}
+    ${resumen}
+    <div class="section-title">Mis cultivos (${datos.cultivos.length})</div>
+    ${renderCultivos(datos.cultivos)}
+    <div class="last-update">Última actualización: ${new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</div>`;
+}
+
 async function cargarDatos() {
-  document.getElementById('content').innerHTML = `<div class="loading"><div class="spinner"></div><div>Cargando tu huerto...</div></div>`;
+  lastLoad = Date.now();
   try {
     const r     = await fetch(API_URL);
     const datos = await r.json();
     datosGlobales = datos;
-    const urgentes = datos.cultivos.filter(c => (c.semaforoRiego||'').includes('URGENTE') || (c.semaforoFert||'').includes('URGENTE')).length;
-    const prontos  = datos.cultivos.filter(c => (c.semaforoRiego||'').includes('PRONTO')  || (c.semaforoFert||'').includes('PRONTO')).length;
-    const resumen  = urgentes > 0
-      ? `<div style="background:#FFEBEE;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#C62828;font-weight:500;">🔴 ${urgentes} cultivo${urgentes>1?'s':''} necesita${urgentes>1?'n':''} atención urgente hoy</div>`
-      : prontos > 0
-      ? `<div style="background:#FFF8E1;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#F57F17;font-weight:500;">🟡 ${prontos} cultivo${prontos>1?'s':''} necesita${prontos>1?'n':''} atención pronto</div>`
-      : `<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#2E7D32;font-weight:500;">🟢 Todo en orden — nada urgente hoy</div>`;
-    document.getElementById('content').innerHTML = `
-      ${renderClima(datos.clima)}
-      ${resumen}
-      <div class="section-title">Mis cultivos (${datos.cultivos.length})</div>
-      ${renderCultivos(datos.cultivos)}
-      <div class="last-update">Última actualización: ${new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</div>`;
+    // Guardar copia local para cuando no haya cobertura en el huerto
+    try { localStorage.setItem('huerto-cache', JSON.stringify(datos)) } catch(e) {}
+    renderTodo(datos, false);
   } catch(e) {
+    // Sin conexión: usar la última copia guardada
+    try {
+      const cache = JSON.parse(localStorage.getItem('huerto-cache'));
+      if (cache) { datosGlobales = cache; renderTodo(cache, true); return }
+    } catch(e2) {}
     document.getElementById('content').innerHTML = `<div class="error-box">No se pudieron cargar los datos.<br><br>
       <button onclick="cargarDatos()" style="margin-top:10px;padding:8px 16px;background:#C62828;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;">Reintentar</button></div>`;
   }
 }
 
+// Recargar al volver a la app (p. ej. después de enviar el formulario),
+// con freno de 60s para no recargar en cada toque
+function refrescoAlVolver() {
+  if (document.visibilityState !== 'visible') return;
+  if (Date.now() - lastLoad < 60 * 1000) return;
+  cargarDatos();
+  cargarPronostico();
+}
+document.addEventListener('visibilitychange', refrescoAlVolver);
+
 cargarDatos();
+cargarPronostico();
 setInterval(cargarDatos, 30 * 60 * 1000);
 </script>
 </body>
