@@ -55,7 +55,10 @@
   .plant-row-lbl { color: #888; }
   .plant-row-val { font-weight: 500; color: #333; text-align: right; max-width: 65%; }
   .quick-btns { display: flex; gap: 8px; margin-top: 12px; }
-  .quick-btn { flex: 1; text-align: center; padding: 8px 4px; border-radius: 10px; font-size: 12px; font-weight: 600; text-decoration: none; }
+  .quick-btn { flex: 1; text-align: center; padding: 8px 4px; border-radius: 10px; font-size: 12px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; font-family: inherit; }
+  .quick-btn:disabled { opacity: 0.6; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1B4332; color: white; padding: 12px 20px; border-radius: 24px; font-size: 14px; font-weight: 600; z-index: 300; box-shadow: 0 4px 16px rgba(0,0,0,0.25); max-width: 90%; text-align: center; }
+  .toast.err { background: #C62828; }
   .quick-riego { background: #E3F2FD; color: #1565C0; }
   .quick-fert  { background: #F3E5F5; color: #6A1B9A; }
   .cache-nota { background: #FFF8E1; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #856404; margin-bottom: 12px; text-align: center; }
@@ -100,9 +103,6 @@
 </div>
 <script>
 const API_URL   = 'https://script.google.com/macros/s/AKfycbw67Fssw4HnC1sEW4Oz69Qq4wXnh5G0-WXa0sWs1jSHFxoWPayCMWPwn1Sz-TPd2peO/exec';
-const FORM_BASE = 'https://docs.google.com/forms/d/e/1FAIpQLSeVQsvUV_AZ6rJ4JcC3XbdBwRCAYFsdgdkHNj6fJpqcXJ9C3g/viewform?usp=pp_url';
-const ENTRY_CULTIVO = 'entry.1850594090';
-const ENTRY_ACCION  = 'entry.1825585105';
 
 // Ubicación del huerto: Cañadas del Parque, Dílar (Granada)
 const LAT = 37.069, LON = -3.593;
@@ -112,10 +112,6 @@ let pronosticoHTML = '';
 let lastLoad       = 0;
 
 document.getElementById('header-date').textContent = new Date().toLocaleDateString('es-ES', {weekday:'long',day:'numeric',month:'long'});
-
-function formUrl(nombre, accion) {
-  return FORM_BASE + '&' + ENTRY_CULTIVO + '=' + encodeURIComponent(nombre) + '&' + ENTRY_ACCION + '=' + encodeURIComponent(accion);
-}
 
 function getBadgeClass(s) {
   if (!s) return 'badge-neutral';
@@ -204,8 +200,8 @@ function renderCultivos(cultivos) {
       <div class="plant-row"><span class="plant-row-lbl">Fertilizar</span><span class="plant-row-val">${c.proximaFert || '—'}</span></div>
     </div>
     <div class="quick-btns">
-      <a class="quick-btn quick-riego" href="${formUrl(c.nombre || c.tipo, 'Riego')}" target="_top" onclick="event.stopPropagation()">💧 Regado</a>
-      <a class="quick-btn quick-fert"  href="${formUrl(c.nombre || c.tipo, 'Fertilización')}" target="_top" onclick="event.stopPropagation()">🌱 Abonado</a>
+      <button class="quick-btn quick-riego" onclick="registrar(event, ${i}, 'Riego')">💧 Regado</button>
+      <button class="quick-btn quick-fert"  onclick="registrar(event, ${i}, 'Fertilizacion')">🌱 Abonado</button>
     </div>
   </div>`).join('');
 }
@@ -217,16 +213,13 @@ function verDetalle(i) {
       <div><div class="detail-name">${c.nombre || c.tipo}</div><div class="detail-sub">${c.tipo} · ${c.metodo}</div></div>
       <button class="btn-close" onclick="cerrarDetalle()">✕</button>
     </div>
-    <div class="form-nota">
-      Al pulsar un botón se abrirá un formulario con el cultivo y la acción ya seleccionados. Solo tienes que pulsar <strong>Enviar</strong> y cerrar.
-    </div>
     <div class="action-btns">
-      <a class="btn-action btn-riego" href="${formUrl(c.nombre || c.tipo, 'Riego')}" target="_top">
+      <button class="btn-action btn-riego" onclick="registrar(event, ${i}, 'Riego')">
         <span class="btn-icon">💧</span><span class="btn-lbl">Registrar riego</span>
-      </a>
-      <a class="btn-action btn-fert" href="${formUrl(c.nombre || c.tipo, 'Fertilización')}" target="_top">
+      </button>
+      <button class="btn-action btn-fert" onclick="registrar(event, ${i}, 'Fertilizacion')">
         <span class="btn-icon">🌱</span><span class="btn-lbl">Registrar fertilización</span>
-      </a>
+      </button>
     </div>
     <div class="detail-section">
       <div class="detail-section-title">Estado del cultivo</div>
@@ -255,6 +248,42 @@ function cerrarDetalle(e) {
   if (e && e.target !== document.getElementById('overlay')) return;
   document.getElementById('overlay').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+// ── Registro con UN toque: llama directamente al Apps Script ──
+async function registrar(ev, i, tipo) {
+  ev.stopPropagation();
+  ev.preventDefault();
+  const c    = datosGlobales.cultivos[i];
+  const btn  = ev.currentTarget;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '⏳ Guardando…';
+  btn.disabled  = true;
+  try {
+    const r = await fetch(API_URL
+      + '?accion=registrar&cultivo=' + encodeURIComponent(c.nombre || c.tipo)
+      + '&tipo=' + encodeURIComponent(tipo));
+    const datos = await r.json();
+    datosGlobales = datos;
+    lastLoad = Date.now();
+    try { localStorage.setItem('huerto-cache', JSON.stringify(datos)) } catch(e) {}
+    document.getElementById('overlay').classList.remove('open');
+    document.body.style.overflow = '';
+    renderTodo(datos, false);
+    toast((tipo === 'Riego' ? '💧 ' : '🌱 ') + (c.nombre || c.tipo) + ' — registrado');
+  } catch(e) {
+    btn.innerHTML = orig;
+    btn.disabled  = false;
+    toast('⚠️ Sin conexión — no se pudo registrar. Inténtalo con cobertura.', true);
+  }
+}
+
+function toast(msg, esError) {
+  const t = document.createElement('div');
+  t.className = 'toast' + (esError ? ' err' : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
 }
 
 async function forzarActualizacion() {
